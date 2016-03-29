@@ -7,6 +7,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     FileTracker f(argv[1]);
-    f.printFilesHash();
+    f.checkDifference();
+    //f.printFilesHash();
     return 0;
 }
