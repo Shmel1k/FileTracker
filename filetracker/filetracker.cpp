@@ -1,6 +1,8 @@
 #include "filetracker.hpp"
 
 FileTracker::FileTracker(const char* directory) {
+    this->directory = directory;
+
     struct dirent *ent;
 
     if ((dir = opendir(directory)) != NULL) {
@@ -20,7 +22,7 @@ FileTracker::~FileTracker() {
 }
 
 std::string FileTracker::readFile(std::string filename) {
-    std::ifstream f(filename);
+    std::ifstream f(directory + filename);
 
     if (!f) {
         return "";
@@ -31,10 +33,23 @@ std::string FileTracker::readFile(std::string filename) {
     return buf.str();
 }
 
-bool FileTracker::hasDirectoryEdited() {
-    return _isEdited;
+size_t FileTracker::getFileHash(std::string filename) {
+    std::hash<std::string> h;
+    return h(readFile(filename));
 }
 
 void FileTracker::checkDifference() {
 
+}
+
+void FileTracker::printHashes() {
+    for (auto iter = filesHash.begin(); iter != filesHash.end(); ++iter) {
+        std::cout << *iter << "\n";
+    }
+}
+
+void FileTracker::printFileNames() {
+    for (auto iter = fileNames.begin(); iter != fileNames.end(); ++iter) {
+        std::cout << *iter << "\n";
+    }
 }
