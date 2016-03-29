@@ -1,10 +1,12 @@
 #include <iostream>
-#include "filetracker/filetracker.hpp"
+#include "filetracker/filetracker.cpp"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cout << "No directory specified, exiting\n";
         return 0;
     }
+    FileTracker f(argv[1]);
+
     return 0;
 }
