@@ -43,15 +43,13 @@ size_t FileTracker::getFileHash(std::string filename) {
 }
 
 void FileTracker::trackFile(std::string filename) {
-    std::cout << "Started " << std::this_thread::get_id() << " thread";
     for (;;) {
-        //std::cout << filename;
-        locker.lock();
         size_t hash = getFileHash(filename);
-        locker.unlock();
         if (hash != filesHash.at(filename)) {
-            std::cout << "FILE " << filename << " HAS BEEN EDITED!!!";
+            std::lock_guard<std::mutex> lock(locker);
+            std::cout << "FILE " << filename << " HAS BEEN EDITED!!!\n";
             filesHash.at(filename) = hash;
+            locker.unlock();
         }
         //std::this_thread::sleep_for(std::chrono::seconds(2));
     }
@@ -59,11 +57,11 @@ void FileTracker::trackFile(std::string filename) {
 
 void FileTracker::checkDifference() {
     std::vector<std::thread> threads;
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < fileNames.size(); ++i) {
         std::string filename = fileNames.at(i);
         threads.push_back(std::thread(&FileTracker::trackFile, this, filename));
     }
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < threads.size(); ++i) {
         threads.at(i).join();
     }
 }
