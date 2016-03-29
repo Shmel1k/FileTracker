@@ -15,6 +15,10 @@ FileTracker::FileTracker(const char* directory) {
         std::cout << "Can not open directory";
         return;
     }
+
+    for (int i = 0; i < fileNames.size(); ++i) {
+        filesHash.insert(std::pair<std::string, size_t>(fileNames.at(i), getFileHash(fileNames.at(i))));
+    }
 }
 
 FileTracker::~FileTracker() {
@@ -38,18 +42,24 @@ size_t FileTracker::getFileHash(std::string filename) {
     return h(readFile(filename));
 }
 
-void FileTracker::checkDifference() {
-
+void trackFile(std::string filename) {
 }
 
-void FileTracker::printHashes() {
-    for (auto iter = filesHash.begin(); iter != filesHash.end(); ++iter) {
-        std::cout << *iter << "\n";
+void FileTracker::checkDifference() {
+    std::vector<std::thread> threads;
+    for (int i = 0; i < fileNames.size(); ++i) {
+
     }
 }
 
 void FileTracker::printFileNames() {
     for (auto iter = fileNames.begin(); iter != fileNames.end(); ++iter) {
         std::cout << *iter << "\n";
+    }
+}
+
+void FileTracker::printFilesHash() {
+    for (auto iter = filesHash.begin(); iter != filesHash.end(); ++iter) {
+        std::cout << iter->first << " " << iter->second << "\n";
     }
 }
