@@ -53,19 +53,6 @@ size_t FileTracker::getFileHash(std::string filename) {
     return h(readFile(filename));
 }
 
-void FileTracker::trackFile(std::string filename) {
-    for (;;) {
-        size_t hash = getFileHash(filename);
-        if (hash != filesHash.at(filename)) {
-            locker.lock();
-            std::cout << "FILE " << filename << " HAS BEEN EDITED!!!\n";
-            locker.unlock();
-            filesHash.at(filename) = hash;
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-}
-
 void FileTracker::trackFilesNotMulti() {
     for (;;) {
         for (auto iter = fileNames.begin(); iter != fileNames.end(); ++iter) {

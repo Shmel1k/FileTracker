@@ -33,8 +33,6 @@ class FileTracker {
     std::string readFile(std::string filename);  // we read file and get string
 
     void trackFilesNotMulti();
-    void trackFile(std::string filename);
 
     std::mutex locker;
-    std::mutex locker1;
 };
