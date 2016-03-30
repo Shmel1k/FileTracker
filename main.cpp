@@ -8,6 +8,6 @@ int main(int argc, char* argv[]) {
     }
     FileTracker f(argv[1]);
     f.checkDifferenceNotMulti();
-    //f.printFilesHash();
+    // f.printFilesHash();
     return 0;
 }

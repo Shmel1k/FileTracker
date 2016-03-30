@@ -1,35 +1,41 @@
 #include "filetracker.hpp"
 
-FileTracker::FileTracker(const char* directory) {
+FileTracker::FileTracker(const char *directory) {
     this->directory = directory;
     struct dirent *ent;
 
     if ((dir = opendir(directory)) != NULL) {
         for (ent = readdir(dir); ent != NULL; ent = readdir(dir)) {
             fileNames.push_back(ent->d_name);
-
         }
-        closedir(dir);
     } else {
         std::cout << "Can not open directory";
         return;
     }
-
+    closedir(dir);
     for (int i = 0; i < fileNames.size(); ++i) {
-        filesHash.insert(std::pair<std::string, size_t>(fileNames.at(i), getFileHash(fileNames.at(i))));
+        filesHash.insert(std::pair<std::string, size_t>(
+            fileNames.at(i), getFileHash(fileNames.at(i))));
     }
     std::cout << "FileTracker has been successfully launched!\n";
 }
 
 FileTracker::~FileTracker() {
-    //TODO Write destructror.
+    // TODO Write destructror.
+    closedir(dir);
 }
 
 std::string FileTracker::readFile(std::string filename) {
     std::ifstream f(directory + filename);
 
     if (!f) {
-        std::cout << "Error: Can not read file -- " << filename << " --";
+        locker.lock();
+        std::cout << "File " << filename << " has been removed!\n";
+        locker.unlock();
+        fileNames.erase(
+            std::remove(fileNames.begin(), fileNames.end(), filename),
+            fileNames.end());
+        filesHash.erase(filename);
         return "";
     }
 
@@ -40,6 +46,10 @@ std::string FileTracker::readFile(std::string filename) {
 
 size_t FileTracker::getFileHash(std::string filename) {
     std::hash<std::string> h;
+    std::string file = readFile(filename);
+    if (file == "") {
+        return 0;  // hash returns 0 if the file is empty
+    }
     return h(readFile(filename));
 }
 
@@ -47,10 +57,10 @@ void FileTracker::trackFile(std::string filename) {
     for (;;) {
         size_t hash = getFileHash(filename);
         if (hash != filesHash.at(filename)) {
-            std::lock_guard<std::mutex> lock(locker);
+            locker.lock();
             std::cout << "FILE " << filename << " HAS BEEN EDITED!!!\n";
-            filesHash.at(filename) = hash;
             locker.unlock();
+            filesHash.at(filename) = hash;
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
@@ -59,36 +69,36 @@ void FileTracker::trackFile(std::string filename) {
 void FileTracker::trackFilesNotMulti() {
     for (;;) {
         for (auto iter = fileNames.begin(); iter != fileNames.end(); ++iter) {
-            std::lock_guard<std::mutex> lock(locker);
             size_t hash = getFileHash(*iter);
             if (hash != filesHash.at(*iter)) {
+                locker.lock();
                 std::cout << "File " << *iter << " has been edited!\n";
+                locker.unlock();
                 filesHash.at(*iter) = hash;
             }
-            locker.unlock();
         }
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
 
 void FileTracker::checkFileAdd() {
-    for(;;) {
-
-    struct dirent *ent;
-
-    if ((dir = opendir(directory)) != NULL) {
+    for (;;) {
+        dir = opendir(directory);
+        struct dirent *ent;
         for (ent = readdir(dir); ent != NULL; ent = readdir(dir)) {
-            if (!(std::find(fileNames.begin(), fileNames.end(), ent->d_name) != fileNames.end())) {
+            if (!(std::find(fileNames.begin(), fileNames.end(), ent->d_name) !=
+                  fileNames.end())) {
+                locker.lock();
                 std::cout << "File " << ent->d_name << " has been created!\n";
+                locker.unlock();
                 fileNames.push_back(ent->d_name);
+
+                filesHash.insert(std::pair<std::string, size_t>(
+                    ent->d_name, getFileHash(ent->d_name)));
             }
+            std::this_thread::sleep_for(std::chrono::seconds(2));
         }
         closedir(dir);
-    } else {
-        std::cout << "Can not open directory";
-        return;
-    }
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
 
