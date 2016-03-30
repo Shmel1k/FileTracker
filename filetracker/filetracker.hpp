@@ -11,6 +11,7 @@
 #include <sstream>
 #include <chrono>
 #include <mutex>
+#include <algorithm> //TODO sort included headers by name.
 
 class FileTracker {
 public:
@@ -20,7 +21,8 @@ public:
     void printFileNames();
     void printFilesHash();
     void checkDifference(); //function that checks difference.
-    void trackFile(std::string filename);
+    void checkDifferenceNotMulti();
+    void checkFileAdd();
 private:
     DIR *dir; //directory we scan
     const char* directory; //the directory we are in.
@@ -29,6 +31,8 @@ private:
     size_t getFileHash(std::string filename);
     std::string readFile(std::string filename); //we read file and get string
 
+    void trackFilesNotMulti();
+    void trackFile(std::string filename);
 
     std::mutex locker;
 };
